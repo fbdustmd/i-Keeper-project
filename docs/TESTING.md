@@ -1,5 +1,56 @@
 # NetSentry Testing Guide
 
+## Build Verification
+
+Primary environment: Windows, PowerShell 7.6.5, MSYS2 UCRT64 GCC 16.1.0.
+Run from the NetSentry repository root (not the parent repository):
+
+```powershell
+git rev-parse --show-toplevel
+.\build.ps1 -Clean
+.\build.ps1
+```
+
+The build checks GCC availability, creates build/, uses C11 and
+-Wall -Wextra -Wpedantic, and checks the compiler exit and executable existence.
+`-WarningsAsErrors` adds -Werror; the smoke entry point always enables it.
+Makefile is an optional Unix/MSYS2 path and remains unverified here.
+
+## Smoke Test
+
+```powershell
+.\tests\smoke.ps1
+```
+
+This single command builds and checks no arguments, --help, --invalid and
+--help extra. Expected exit codes are 0, 0, 1, 1 respectively.
+Success cases must print usage on stdout with empty stderr; error cases must
+print an error on stderr with empty stdout. Each CLI case has a 10-second timeout.
+
+## Success Criteria
+
+No compiler warnings; all four cases match exit codes and output streams;
+the script prints `All smoke tests passed.` and exits 0.
+
+## Failure
+
+Any build, warning, launch, timeout or assertion failure makes smoke.ps1 exit 1.
+Check GCC on PATH, compiler diagnostics and the named failing case.
+Check `$LASTEXITCODE` immediately after execution. For process-level verification,
+run `pwsh -NoProfile -File .\tests\smoke.ps1` and inspect its exit code.
+
+Failure detection was verified on 2026-09-28 in an ignored copy under
+build/verification-probe: changing an expected exit to 9 returned 1; adding an
+unused static variable failed the -Werror build and returned 1; invalid C made
+standalone build.ps1 return nonzero. Production src/main.c was unchanged.
+These probes are disposable local verification artifacts, not shipped tests.
+
+## Future Tests
+
+Phase 1 adds capture-specific checks; later parser phases add byte-array unit
+tests and PCAP integration cases. No packet tests or capture verification exist yet.
+The initial manual verification below is retained as historical evidence.
+
 ## Phase 0 verification (2026-09-28)
 
 Environment: Windows PowerShell, MSYS2 UCRT64 GCC 16.1.0.

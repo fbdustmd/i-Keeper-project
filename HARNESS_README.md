@@ -31,7 +31,7 @@ Do not paste the full project explanation into every prompt.
 A task prompt can be small:
 
 ```text
-Implement Phase 1 using the active execution plan.
+Prepare Phase 1 using docs/exec-plans/active/phase-01-capture-environment.md.
 Follow AGENTS.md.
 Do not implement Phase 2.
 Build and test the result.
@@ -41,7 +41,7 @@ or:
 
 ```text
 Implement only the Ethernet parser from
-docs/exec-plans/active/phase-02-packet-parsers.md.
+docs/exec-plans/reference/phases-02-to-05-packet-parsers.md.
 
 Follow the packet bounds rules in
 docs/IMPLEMENTATION_RULES.md.

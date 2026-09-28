@@ -34,6 +34,16 @@ The nested repository must not be accidentally staged as a submodule in the pare
 Phase 1 still requires a capture backend and runtime environment decision.
 
 ## Completion Notes
+Phase 0 development environment completion (2026-09-28): automated smoke tests
+now build with -Werror, check four CLI exit codes and stdout/stderr, and return
+nonzero on failure. Negative probes in an ignored copy demonstrated assertion,
+warning and compilation failure handling. README and TESTING provide one command.
+The repository root and origin are verified; build/ is ignored. Windows
+PowerShell 7.6.5 + MSYS2 UCRT64 GCC 16.1.0 is the verified primary environment.
+Historical PCAP/parser plans are preserved in reference/; the active next plan
+is phase-01-capture-environment.md. Phase 1 can begin with dependency inspection;
+capture runtime/SDK readiness is not claimed. No feature code was changed.
+
 Windows GCC build passed without warnings; four CLI cases passed with expected
 exit codes. Clean removed all generated files and rebuild succeeded.
 See docs/TESTING.md for the reproduced temporary-path failure and verified fix.

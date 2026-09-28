@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$Clean)
+param([switch]$Clean, [switch]$WarningsAsErrors)
 
 $ErrorActionPreference = 'Stop'
 $buildDirectory = Join-Path $PSScriptRoot 'build'
@@ -19,11 +19,16 @@ $compiler = Get-Command gcc -CommandType Application -ErrorAction Stop
 New-Item -ItemType Directory -Path $buildDirectory -Force | Out-Null
 Push-Location -LiteralPath $PSScriptRoot
 try {
+    $extraFlags = @()
+    if ($WarningsAsErrors) { $extraFlags += '-Werror' }
     # Keep intermediate files beside the output, avoiding the non-ASCII TEMP path.
     & $compiler.Source '-std=c11' '-Wall' '-Wextra' '-Wpedantic' '-save-temps=obj' `
-        'src/main.c' '-o' 'build/netsentry.exe'
+        @extraFlags 'src/main.c' '-o' 'build/netsentry.exe'
     if ($LASTEXITCODE -ne 0) {
         throw "GCC failed with exit code $LASTEXITCODE."
+    }
+    if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
+        throw 'GCC did not produce netsentry.exe.'
     }
 }
 finally {

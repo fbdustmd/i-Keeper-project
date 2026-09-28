@@ -29,12 +29,15 @@ docs/exec-plans/completed/
 Use names like:
 
 ```text
-phase-03-flow-manager.md
-phase-04-basic-reassembly.md
+phase-06-flow-manager.md
+phase-07-basic-reassembly.md
 bug-truncated-ipv4.md
 ```
 
 ## 3. Plan Template
+
+Historical or multi-phase reference drafts live in `docs/exec-plans/reference/`.
+They are not current execution plans; use ROADMAP.md for phase numbering.
 
 Each plan should contain:
 
