@@ -1,25 +1,28 @@
 # NetSentry
 
+## 프로젝트 소개
+
 C와 libpcap으로 패킷을 분석하는 학습용 CLI 프로젝트입니다.
-최종 흐름은 캡처 → Ethernet → IPv4 → TCP → Flow → 제한적 재조립
+최종 흐름은 패킷 캡처(Packet Capture) → Ethernet → IPv4 → TCP
+→ 흐름 식별(Flow Tracking) → 제한적 TCP 스트림 재조립(TCP Stream Reassembly)
 → HTTP/1.x → 민감 필드 탐지입니다. 민감 값은 마스킹하며 HTTPS를 복호화하지 않습니다.
 
-## Current Status
+## 현재 개발 상태
 
 Phase 0 개발환경 검증 완료 / Phase 1 캡처 환경 준비 단계.
 
-## Current Features
+## 주요 기능
 
 Phase 0 최소 CLI: 기본 안내, `--help`, 잘못된 인자의 오류 종료.
 패킷 캡처와 분석은 아직 구현되지 않았습니다. 현재 빌드에는 libpcap이 필요하지 않습니다.
 
-## Requirements
+## 개발 환경
 
 - Windows
 - PowerShell (검증 버전은 docs/TESTING.md 참고)
 - PATH에 등록된 MSYS2 UCRT64 GCC
 
-## Build
+## 빌드 방법
 
 PowerShell과 PATH에 등록된 GCC가 필요합니다. 프로젝트 루트에서 실행합니다.
 
@@ -33,13 +36,13 @@ Windows GCC의 한글 임시 경로 문제를 피하도록 `-save-temps=obj`로 
 `build/`에 저장합니다. `-Clean`은 이 빌드가 생성한 실행 파일과 중간 파일을 제거합니다.
 정리가 필요할 때만 `.\build.ps1 -Clean`을 실행한 뒤 다시 빌드합니다.
 
-## Run
+## 실행 방법
 
 ```powershell
 .\build\netsentry.exe --help
 ```
 
-## Test
+## 테스트 방법
 
 ```powershell
 .\tests\smoke.ps1
@@ -50,8 +53,8 @@ Windows GCC의 한글 임시 경로 문제를 피하도록 `-save-temps=obj`로 
 
 ## make 환경
 
-Primary Windows build path: build.ps1
-Makefile is an optional Unix/MSYS2 build path.
+Windows의 기본 빌드 경로는 `build.ps1`입니다.
+Makefile은 Unix/MSYS2 환경에서 선택적으로 사용합니다.
 
 GCC, GNU make와 POSIX 셸이 있는 환경을 위한 대체 경로입니다.
 현재 Windows 환경에서는 make가 없어 이 경로는 아직 검증하지 않았습니다.
@@ -62,7 +65,7 @@ make
 make clean
 ```
 
-## 구조
+## 프로젝트 구조
 
 - `src/`: 구현, 현재 main.c만 존재
 - `include/`: 향후 모듈 헤더
@@ -72,13 +75,16 @@ make clean
 - `ARCHITECTURE.md`: 모듈 경계와 데이터 흐름
 - `AGENTS.md`: 개발 규칙
 
-## Roadmap
+## 개발 로드맵
 
 개발 순서는 [ROADMAP](docs/ROADMAP.md), 검증 방법은 [TESTING](docs/TESTING.md)을 따릅니다.
+
+## 향후 계획
+
 Phase 1은 인터페이스 선택과 실시간 캡처입니다. 캡처 라이브러리·드라이버 및
 실행 환경은 Phase 1 설계에서 확정하고 실제 패킷으로 검증합니다.
 
-## Git
+## Git 작업 방식
 
 이 디렉터리를 독립 저장소 루트로 사용합니다.
 상위 `키퍼 프로젝트`의 기존 저장소와 ZIP은 보존하며 이 저장소에 포함하지 않습니다.

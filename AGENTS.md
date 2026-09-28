@@ -1,5 +1,21 @@
 # NetSentry Agent Instructions
 
+## 문서와 GitHub 기록의 언어
+
+- 사람이 읽는 설명은 한국어를 기본으로 한다. README, docs, 설계·실행 계획,
+  테스트 결과, PR·Issue 제목과 본문, 리뷰, 프로젝트 설명에 적용한다.
+- 커밋은 `docs: 프로젝트 문서 갱신`처럼 Conventional Commits 접두사와
+  한국어 설명을 사용한다. 이미 게시된 커밋 메시지는 소급 변경하지 않는다.
+- 변수·함수·구조체·파일·디렉터리·API 이름은 영어를 유지한다.
+  코드, 명령어, 경로, 라이브러리·프로토콜·표준 명칭은 번역하지 않는다.
+- 주요 기술 용어는 처음에 패킷 캡처(Packet Capture)처럼 병기하고,
+  이후에는 문맥에 맞는 한국어 또는 익숙한 영문 표기를 사용한다.
+- 새로 작성하는 주요 설명 주석은 한국어를 우선한다.
+- 기존 영어 문서는 현재 Phase와 관련된 부분부터 점진적으로 정리한다.
+  대량 번역과 기능 개발을 한 커밋에 섞지 않는다.
+- push 전에 새 설명의 언어, 실제 구현 상태, 검증 근거를 확인한다.
+  미구현 기능이나 실행하지 않은 테스트를 완료로 표현하지 않는다.
+
 ## 1. Project Mission
 
 NetSentry is a learning-oriented network security project written in C with libpcap.
