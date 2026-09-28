@@ -1,16 +1,14 @@
-# NetSentry Implementation Rules
+# NetSentry 구현 규칙
 
-## 1. Language
+## 1. 언어
 
-Use C.
+C를 사용한다. 과도한 매크로나 메타프로그래밍보다 표준적이고 읽기 쉬운 코드를 작성한다.
 
-Prefer standard, readable C over macro-heavy or metaprogramming-like designs.
+## 2. 함수 설계
 
-## 2. Function Design
+함수는 작게 만들고 하나의 책임만 맡긴다.
 
-Prefer small functions with one responsibility.
-
-Good:
+권장 예:
 - `parse_ethernet(...)`
 - `parse_ipv4(...)`
 - `parse_tcp(...)`
@@ -19,134 +17,74 @@ Good:
 - `http_parse_request(...)`
 - `detect_sensitive_fields(...)`
 
-Avoid large functions that parse multiple protocol layers and perform detection at once.
+여러 프로토콜 분석과 탐지를 하나의 큰 함수에 넣지 않는다.
 
-## 3. Packet Bounds
+## 3. 패킷 경계
 
-Every parser must receive enough information to validate bounds.
-
-Do not rely on:
-- expected packet sizes
-- minimum header assumptions
-- null termination inside packet payloads
-
-Before reading N bytes from offset O:
+모든 파서는 경계를 검증할 정보를 받아야 한다.
+예상 패킷 크기, 최소 헤더 길이, 페이로드(Payload)의 널 종료를 가정하지 않는다.
+오프셋 O에서 N바이트를 읽기 전에 다음 조건을 만족해야 한다.
 
 ```text
 O + N <= caplen
 ```
 
-must be true.
+## 4. IPv4 규칙
 
-## 4. IPv4 Rules
+패킷의 IHL을 읽는다. IPv4 헤더 길이는 IHL × 4다.
+잘못된 값은 거부하거나 건너뛴다. 확인 없이 20바이트라고 가정하지 않는다.
 
-Read IHL from the packet.
+## 5. TCP 규칙
 
-```text
-IPv4 header length = IHL × 4
-```
+TCP 헤더 길이는 Data Offset × 4다. 확인 없이 20바이트라고 가정하지 않는다.
+포트는 `ntohs`, SEQ/ACK는 `ntohl`로 바이트 순서를 변환한다.
 
-Reject or skip invalid values.
+## 6. 페이로드 길이
 
-Do not assume 20 bytes unless verified.
+검증한 패킷·IP·TCP 길이로 계산하고 `caplen`을 넘겨 읽지 않는다.
+캡처된 바이트가 원래 패킷 길이보다 짧으면 잘린 패킷으로 처리한다.
 
-## 5. TCP Rules
+## 7. 연결 식별 키
 
-Read TCP Data Offset.
-
-```text
-TCP header length = data_offset × 4
-```
-
-Do not assume 20 bytes unless verified.
-
-Convert multibyte fields:
-- ports with `ntohs`
-- seq/ack with `ntohl`
-
-## 6. Payload Length
-
-Payload length should be computed from validated packet/IP/TCP lengths.
-
-Never read beyond `caplen`.
-
-If captured bytes are shorter than wire-reported bytes, treat the packet as truncated.
-
-## 7. Flow Key
-
-Flow comparison must treat both directions as one connection.
-
-Do not incorrectly create two independent flows for:
+다음 양방향 패킷은 같은 연결로 비교해야 한다.
 
 ```text
 A:50000 → B:80
 B:80 → A:50000
 ```
 
-However, stream state inside that flow must remain direction-specific.
+연결 내부의 스트림 상태는 방향별로 분리한다.
 
-## 8. Reassembly
+## 8. 재조립
 
-Start simple.
+순서대로 도착한 세그먼트 → 순서 역전 저장·정렬 → 완전 중복 → 단순 재전송 순으로 확장한다.
+나중에 필요해지기 전에는 구간 트리, 복잡한 중첩 처리, 시퀀스 공간 알고리즘을 도입하지 않는다.
 
-Iteration order:
-1. in-order segments
-2. out-of-order storage and sorting
-3. exact duplicates
-4. simple retransmissions
+## 9. 메모리
 
-Do not start with interval trees, advanced overlap resolution, or sequence-space algorithms unless later required.
+모든 할당은 소유권이 분명해야 한다. 누가 할당하고 해제하는지 기록한다.
+작은 분석 구조체로 충분하다면 전체 패킷을 복사하지 않는다.
+libpcap 버퍼보다 오래 보관할 재조립 데이터는 필요한 페이로드 바이트만 복사한다.
 
-## 9. Memory
+## 10. 문자열
 
-Every allocation must have a clear owner.
+패킷 페이로드는 바이트 배열이며 C 문자열이라고 보장할 수 없다.
+충분한 크기의 버퍼에 복사하고 널 종료 문자를 직접 추가하기 전에는 문자열 함수를 사용하지 않는다.
 
-For every allocated structure, document:
-- who allocates it
-- who frees it
+## 11. 민감 값
 
-Avoid copying entire packets when a small parsed structure is enough.
-
-For reassembly payloads that must outlive libpcap's packet buffer, copy only the required payload bytes.
-
-## 10. Strings
-
-Packet payloads are byte arrays, not guaranteed C strings.
-
-Never call string functions on packet data unless:
-- the data was copied into a buffer
-- enough space exists
-- a null terminator was explicitly added
-
-## 11. Sensitive Values
-
-Detector output must prefer:
+실제 값을 출력하지 않고 다음과 같이 가린다.
 
 ```text
 field=password value=********
 ```
 
-over printing real values.
+## 12. 로그
 
-## 12. Logging
+학습과 디버깅에 도움이 되는 패킷 번호, 연결 ID, 방향, SEQ, 페이로드 길이,
+파서 결과를 기록한다. 기본 동작에서 민감한 원본 페이로드를 덤프하지 않는다.
 
-Logs should help learning and debugging.
+## 13. 리팩터링
 
-Useful:
-- packet number
-- flow id
-- direction
-- seq
-- payload length
-- parser result
-
-Avoid dumping raw sensitive payload by default.
-
-## 13. Refactoring
-
-Refactor only after:
-- current behavior is covered by tests
-- the new boundary is clearer than the old one
-- the refactor is relevant to the current task
-
-Do not rewrite unrelated modules.
+현재 동작을 테스트로 확인했고, 책임 경계가 더 명확해지며, 현재 작업에 필요한 경우에만 진행한다.
+무관한 모듈은 다시 작성하지 않는다.

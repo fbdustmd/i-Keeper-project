@@ -1,9 +1,9 @@
-# NetSentry Roadmap
+# NetSentry 개발 로드맵
 
 사용자의 2026-09-28 지시를 기준으로 합니다. 검증한 단계만 완료 표시합니다.
 
-Phase 0 - Project Bootstrap: Status: Complete
-Phase 1 - Packet Capture Environment: Status: Next
+Phase 0 - 프로젝트 기반 구성: 완료
+Phase 1 - 패킷 캡처 환경: 다음 작업
 
 현재 진입점: `docs/exec-plans/active/phase-01-capture-environment.md`.
 

@@ -1,26 +1,32 @@
-# Phase 0 - Automated verification completion
+# Phase 0 - 자동 검증 환경 완성
 
-## Goal
-Finish the existing Windows PowerShell + GCC skeleton without feature code.
+## 목표
 
-## Design and steps
-- Add tests/smoke.ps1 as the sole combined build/test entry point.
-- Check exit codes, output streams, and compiler warnings using GCC -Werror.
-- Check executable creation in build.ps1; preserve normal build behavior.
-- Verify failing expectations, compiler warnings and build errors in an ignored
-  isolated copy under build/, without changing production main.c.
-- Preserve the old PCAP plan as reference and write a Phase 1 environment plan.
-- Update instructions, record actual results and commit only this task's files.
+기능 코드를 추가하지 않고 Windows PowerShell + GCC 기반 개발환경을 완성한다.
 
-## Validation
-Clean build, standalone build, smoke test and direct --help in child PowerShell
-processes with exit-code checks. Verify Git root, origin and ignored artifacts.
+## 설계와 작업 순서
 
-## Non-goals
-No capture, parsers, headers, dependencies, push or changes to the parent repository.
+- tests/smoke.ps1을 빌드·테스트 통합 진입점으로 추가한다.
+- 종료 코드와 출력 스트림을 검사하고 GCC -Werror로 경고도 실패 처리한다.
+- build.ps1에 실행 파일 생성 확인을 추가하되 일반 빌드 동작은 유지한다.
+- 실제 main.c를 바꾸지 않고 build/ 아래 별도 복사본에서 잘못된 기대값, 경고, 빌드 오류를 검증한다.
+- 기존 PCAP 계획은 참고 자료로 보존하고 Phase 1 환경 계획을 작성한다.
+- 지침·실행 결과를 갱신하고 이번 작업 파일만 커밋한다.
 
-## Completion
-Completed: strict build and all four CLI cases passed; isolated wrong-expectation,
-warning and invalid-C probes returned nonzero. Production source is unchanged.
-Clean/build/smoke/direct-help verification was performed in child PowerShell
-processes. No dependency was added. See TESTING.md for evidence and limitations.
+## 검증
+
+별도 PowerShell 프로세스에서 정리 후 빌드, 일반 빌드, 기본 동작 검증(Smoke Test),
+직접 --help 실행의 종료 코드를 확인한다.
+Git 루트, origin, 빌드 산출물 제외를 확인한다.
+
+## 제외 범위
+
+캡처, 파서, 헤더, 의존성, push, 상위 저장소 변경은 이 작업에 포함하지 않는다.
+
+## 완료 기록
+
+엄격 빌드와 CLI 4개 사례가 통과했다.
+별도 복사본의 잘못된 기대값, 컴파일 경고, 잘못된 C 입력은 모두 비정상 종료했다.
+실제 소스는 변경하지 않았고 의존성도 추가하지 않았다.
+검증 근거와 제한사항은 TESTING.md에 기록했다.
+이 문서는 당시 작업 기록이며, 이후 게시·한국어화 이력은 Git에서 확인할 수 있다.

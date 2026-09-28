@@ -1,5 +1,8 @@
-# Tests
-Run `.\tests\smoke.ps1` from the project root. It builds with warnings treated
-as errors, then checks four CLI cases (exit codes and stdout/stderr).
-Success prints `All smoke tests passed.` and exits 0; any failure exits 1.
-See docs/TESTING.md for details. No parser or capture tests exist yet.
+# 테스트
+
+프로젝트 루트에서 `.\tests\smoke.ps1`을 실행한다.
+컴파일 경고를 오류로 처리해 빌드한 뒤 CLI 4개 사례의 종료 코드와 표준 출력·오류 출력을 검사한다.
+성공 시 `모든 기본 동작 검증을 통과했습니다.`를 출력하고 0으로 종료한다.
+하나라도 실패하면 1로 종료한다.
+
+자세한 방법은 docs/TESTING.md를 참고한다. 패킷 캡처와 파서 테스트는 아직 없다.

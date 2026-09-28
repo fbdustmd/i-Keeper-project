@@ -1,274 +1,144 @@
-# NetSentry Agent Instructions
+# NetSentry 개발 지침
 
 ## 문서와 GitHub 기록의 언어
 
-- 사람이 읽는 설명은 한국어를 기본으로 한다. README, docs, 설계·실행 계획,
-  테스트 결과, PR·Issue 제목과 본문, 리뷰, 프로젝트 설명에 적용한다.
-- 커밋은 `docs: 프로젝트 문서 갱신`처럼 Conventional Commits 접두사와
-  한국어 설명을 사용한다. 이미 게시된 커밋 메시지는 소급 변경하지 않는다.
-- 변수·함수·구조체·파일·디렉터리·API 이름은 영어를 유지한다.
-  코드, 명령어, 경로, 라이브러리·프로토콜·표준 명칭은 번역하지 않는다.
-- 주요 기술 용어는 처음에 패킷 캡처(Packet Capture)처럼 병기하고,
-  이후에는 문맥에 맞는 한국어 또는 익숙한 영문 표기를 사용한다.
-- 새로 작성하는 주요 설명 주석은 한국어를 우선한다.
-- 기존 영어 문서는 현재 Phase와 관련된 부분부터 점진적으로 정리한다.
-  대량 번역과 기능 개발을 한 커밋에 섞지 않는다.
-- push 전에 새 설명의 언어, 실제 구현 상태, 검증 근거를 확인한다.
-  미구현 기능이나 실행하지 않은 테스트를 완료로 표현하지 않는다.
-
-## 1. Project Mission
-
-NetSentry is a learning-oriented network security project written in C with libpcap.
-
-The 2026-09-28 user roadmap takes precedence: Phase 0 establishes the build;
-Phase 1 implements live capture using a selected interface and pcap_open_live.
-PCAP input remains a reproducible analysis/testing requirement.
-See docs/ROADMAP.md for the current Phase 0-10 numbering.
-
-The analysis pipeline is:
-
-PCAP
-→ Ethernet parsing
-→ IPv4 parsing
-→ TCP parsing
-→ TCP Flow tracking
-→ limited TCP Stream Reassembly
-→ HTTP/1.x Request parsing
-→ plaintext sensitive-field detection
-→ CLI report
-
-The goal is NOT to build Wireshark, an IDS/IPS, a full TCP stack, or an HTTPS decryption tool.
-
-## 2. First Rule: Keep the Scope Small
-
-Before implementing a feature, verify that it belongs to the current MVP.
-
-MVP includes:
-- PCAP input
-- Ethernet / IPv4 / TCP parsing
-- TCP Flow classification
-- basic TCP reassembly
-- HTTP Request parsing
-- sensitive field detection
-- CLI output
-
-MVP excludes:
-- GUI
-- machine learning
-- HTTPS payload decryption
-- IPv6
-- UDP
-- full TCP state-machine implementation
-- complete overlapping-segment handling
-- SACK
-- high-performance traffic processing
-- production IDS/IPS behavior
-
-Do not add excluded features unless the user explicitly asks for an extension after MVP completion.
-
-## 3. Source of Truth
-
-Use these documents depending on the task:
-
-- `ARCHITECTURE.md`
-  - module boundaries
-  - data flow
-  - ownership of responsibilities
-
-- `docs/PROJECT_SPEC.md`
-  - product scope
-  - MVP requirements
-  - non-goals
-  - completion criteria
-
-- `docs/IMPLEMENTATION_RULES.md`
-  - C coding rules
-  - parser rules
-  - memory and boundary handling
-
-- `docs/TESTING.md`
-  - validation strategy
-  - required tests
-  - Wireshark comparison rules
-
-- `docs/EXECUTION_PLANS.md`
-  - how to create and update implementation plans
-
-- `docs/exec-plans/active/`
-  - current implementation plan
-
-Do not read every document for every trivial edit.
-Read the document relevant to the current task.
-
-## 4. Required Working Style
-
-For non-trivial work:
-
-1. Understand the task.
-2. Inspect only the relevant existing files.
-3. Identify the smallest implementation unit.
-4. Write or update an execution plan when the task spans multiple modules.
-5. Implement one coherent step.
-6. Build.
-7. Run relevant tests.
-8. Compare packet-level results with expected values or Wireshark where applicable.
-9. Summarize:
-   - what changed
-   - why
-   - tests performed
-   - remaining limitations
-
-Do not silently make broad architectural changes.
-
-## 5. Learning-Oriented Constraint
-
-This project belongs to a beginner learning networking and C.
-
-Prefer:
-- explicit code
-- readable structures
-- small functions
-- clear ownership
-- simple data structures first
-
-Avoid:
-- unnecessary abstractions
-- clever macros
-- premature optimization
-- hidden control flow
-- complex generic frameworks
-- code that is difficult for the project owner to explain
-
-When there are two correct designs, prefer the easier one to explain unless it materially harms correctness.
-
-## 6. Network Parsing Safety Rules
-
-Never assume packet data is long enough.
-
-Before reading a header or payload:
-- validate `caplen`
-- validate computed offsets
-- validate IPv4 IHL
-- validate TCP Data Offset
-- ensure the next header fits inside captured data
-
-Never trust packet contents.
+- 사람이 읽는 설명은 한국어로 작성한다. README, docs, 설계·실행 계획, 테스트 결과, PR·Issue 제목과 본문, 리뷰, 프로젝트 설명에 적용한다.
+- 커밋은 `docs: 프로젝트 문서 갱신`처럼 Conventional Commits 접두사와 한국어 설명을 사용한다. 이미 게시된 커밋 기록은 소급 변경하지 않는다.
+- 변수·함수·구조체·파일·디렉터리·API 이름은 영어를 유지한다. 명령어, 경로, 라이브러리·프로토콜·표준 명칭은 번역하지 않는다.
+- 주요 기술 용어는 처음에 패킷 캡처(Packet Capture)처럼 병기한다. 이후에는 한국어 또는 익숙한 영문 표기를 사용한다.
+- 주요 설명 주석은 한국어로 작성한다. 사용자의 전체 한국어화 요청에 따라 기존 설명 문서도 같은 원칙을 적용한다.
+- 문서 번역과 기능 개발을 한 커밋에 섞지 않는다.
+- push 전에 설명의 언어, 실제 구현 상태, 검증 근거를 확인한다. 미구현 기능이나 실행하지 않은 테스트를 완료로 표시하지 않는다.
 
-Use network byte-order conversions where required:
-- `ntohs`
-- `ntohl`
+## 1. 프로젝트 목적
 
-Do not cast and dereference packet memory without checking required length first.
+NetSentry는 C와 libpcap을 사용하는 학습용 네트워크 보안 프로젝트다.
+사용자의 2026-09-28 로드맵을 우선한다. Phase 0은 빌드 기반 구성, Phase 1은 인터페이스 선택과 `pcap_open_live`를 이용한 실시간 캡처다.
+PCAP 입력은 재현 가능한 분석·테스트 요구사항으로 유지한다. 단계 번호는 `docs/ROADMAP.md`를 따른다.
 
-## 7. TCP Reassembly Scope
+분석 흐름:
+PCAP → Ethernet 분석 → IPv4 분석 → TCP 분석 → 흐름 식별(Flow Tracking)
+→ 제한적 TCP 스트림 재조립(TCP Stream Reassembly) → HTTP/1.x 요청 분석
+→ 평문 민감 필드 탐지 → CLI 보고
 
-For MVP, implement only enough TCP reassembly to reconstruct simple HTTP requests.
+Wireshark, IDS/IPS, 완전한 TCP 스택이나 HTTPS 복호화 도구를 만드는 것이 목표는 아니다.
 
-Required:
-- identify flow
-- separate directions
-- record sequence number
-- record payload
-- order segments by sequence
-- concatenate contiguous payload
+## 2. 범위를 작게 유지
 
-Preferred after baseline works:
-- exact duplicate suppression
-- simple retransmission handling
-- basic out-of-order handling
+기능 구현 전에 현재 MVP에 포함되는지 확인한다.
 
-Do NOT turn reassembly into a complete TCP stack.
+포함 범위:
+- PCAP 입력과 Ethernet / IPv4 / TCP 분석
+- TCP 연결 분류와 기본 스트림 재조립
+- HTTP 요청 분석, 민감 필드 탐지, CLI 출력
 
-If a capture contains an unsupported edge case:
-- detect it if practical
-- fail safely or skip the ambiguous data
-- document the limitation
+제외 범위:
+- GUI, 머신러닝, HTTPS 페이로드(Payload) 복호화
+- IPv6, UDP, 완전한 TCP 상태 머신
+- 모든 중첩 세그먼트 처리, SACK
+- 고성능 트래픽 처리, 운영용 IDS/IPS 동작
 
-## 8. HTTP Scope
+MVP 완료 후 사용자가 명시적으로 확장을 요청하기 전에는 제외 기능을 추가하지 않는다.
 
-MVP HTTP parsing targets HTTP/1.x requests.
+## 3. 판단 기준 문서
 
-Initial support:
-- Request Line
-- Headers
-- Body
-- `Content-Length`
-- `application/x-www-form-urlencoded`
+| 문서 | 담당 내용 |
+|---|---|
+| `ARCHITECTURE.md` | 모듈 경계, 데이터 흐름, 책임 |
+| `docs/PROJECT_SPEC.md` | 범위, MVP 요구사항, 제외 사항, 완료 기준 |
+| `docs/IMPLEMENTATION_RULES.md` | C 작성 규칙, 파서, 메모리·경계 검사 |
+| `docs/TESTING.md` | 검증 전략, 필수 테스트, Wireshark 비교 |
+| `docs/EXECUTION_PLANS.md` | 계획 작성·갱신 방법 |
+| `docs/exec-plans/active/` | 현재 실행 계획 |
 
-Sensitive indicators include:
-- password
-- passwd
-- pwd
-- username
-- userid
-- email
-- token
-- access_token
-- refresh_token
-- session
-- sessionid
-- session_id
-- Cookie header
-- Authorization header
+작은 수정마다 모든 문서를 다시 읽지 않는다. 해당 작업과 관련된 문서를 확인한다.
 
-Do not store or print real sensitive values in normal output.
-Mask values with `********`.
+## 4. 작업 순서
 
-## 9. HTTPS Scope
+1. 요구사항과 관련 파일을 확인한다.
+2. 가장 작은 구현 단위를 정한다.
+3. 여러 모듈에 걸친 작업은 실행 계획을 작성하거나 갱신한다.
+4. 하나의 일관된 단계를 구현한다.
+5. 빌드하고 관련 테스트를 실행한다.
+6. 필요한 경우 패킷 분석 결과를 예상값 또는 Wireshark와 비교한다.
+7. 변경 내용·이유·검증 결과·남은 제한사항을 정리한다.
 
-Do not attempt to break or bypass TLS.
+큰 구조 변경을 설명 없이 진행하지 않는다.
 
-For HTTPS/TLS traffic, analysis is limited to metadata such as:
-- source/destination IP
-- source/destination port
-- protocol
-- packet length
-- flow information
-- TLS presence when detectable
+## 5. 학습을 위한 제약
 
-The encrypted application payload is outside the MVP.
+프로젝트 소유자는 C와 네트워크를 배우는 초보자다.
+명시적인 코드, 읽기 쉬운 구조체, 작은 함수, 분명한 소유권, 단순한 자료구조를 우선한다.
+불필요한 추상화, 복잡한 매크로, 성급한 최적화, 숨겨진 제어 흐름, 복잡한 범용 프레임워크를 피한다.
+두 설계가 모두 정확하다면 정확성을 해치지 않는 범위에서 설명하기 쉬운 쪽을 선택한다.
 
-## 10. Module Boundaries
+## 6. 패킷 분석 안전 규칙
 
-Keep responsibilities separated.
+패킷 데이터가 충분히 길다고 가정하지 않는다. 헤더나 페이로드를 읽기 전에 다음을 검사한다.
 
-- `capture.c`
-  - libpcap input only
+- `caplen`과 계산한 오프셋
+- IPv4 IHL과 TCP Data Offset
+- 다음 헤더가 캡처된 데이터 범위 안에 들어가는지 여부
 
-- `ethernet.c`
-  - Ethernet parsing only
+패킷 내용을 신뢰하지 않는다. 필요한 곳에 `ntohs`, `ntohl`을 사용한다.
+길이 검사를 하기 전에 패킷 메모리를 형 변환해 역참조하지 않는다.
 
-- `ipv4.c`
-  - IPv4 parsing only
+## 7. TCP 재조립 범위
 
-- `tcp.c`
-  - TCP header/payload metadata parsing only
+MVP에서는 단순한 HTTP 요청을 복원할 정도로만 구현한다.
 
-- `flow.c`
-  - TCP flow identity and direction management
+필수:
+- 연결 식별과 방향 분리
+- 시퀀스 번호(Sequence Number)와 페이로드 기록
+- 시퀀스 번호 기준 정렬
+- 연속한 페이로드 연결
 
-- `reassembly.c`
-  - TCP segment ordering and stream construction
+기본 동작 검증 후 완전 중복 제거, 단순 재전송, 기본 순서 역전 처리를 추가한다.
+완전한 TCP 스택으로 확장하지 않는다.
+지원하지 않는 상황은 가능한 경우 감지하고, 안전하게 실패하거나 모호한 데이터를 건너뛴 뒤 제한사항을 기록한다.
 
-- `http.c`
-  - HTTP parsing
+## 8. HTTP 범위
 
-- `detector.c`
-  - sensitive field detection
+HTTP/1.x 요청을 대상으로 요청 줄, 헤더, 본문, `Content-Length`,
+`application/x-www-form-urlencoded`를 우선 지원한다.
 
-`main.c` coordinates modules.
-It must not become a second implementation of every module.
+민감 필드 후보:
+`password`, `passwd`, `pwd`, `username`, `userid`, `email`, `token`,
+`access_token`, `refresh_token`, `session`, `sessionid`, `session_id`,
+`Cookie` 헤더, `Authorization` 헤더.
 
-## 11. Completion Rule
+일반 출력에 실제 민감 값을 저장하거나 표시하지 않는다. 값은 `********`로 가린다.
 
-A task is not complete just because code was written.
+## 9. HTTPS 범위
 
-A task is complete only when:
-- the project builds
-- relevant tests pass
-- packet bounds are checked
-- no unrelated behavior was changed
-- limitations are documented
-- the result can be explained by the project owner
+TLS를 우회하거나 해독하지 않는다.
+HTTPS/TLS는 출발지·목적지 IP와 포트, 프로토콜, 패킷 길이, 연결 정보,
+감지 가능한 TLS 존재 여부 같은 메타데이터로 분석 범위를 제한한다.
+암호화된 애플리케이션 페이로드는 MVP 대상이 아니다.
 
-If a test cannot be run, explicitly state why.
+## 10. 모듈 책임
+
+| 파일 | 책임 |
+|---|---|
+| `capture.c` | libpcap 입력 |
+| `ethernet.c` | Ethernet 분석 |
+| `ipv4.c` | IPv4 분석 |
+| `tcp.c` | TCP 헤더와 페이로드 메타데이터 분석 |
+| `flow.c` | TCP 연결 식별과 방향 관리 |
+| `reassembly.c` | 세그먼트 정렬과 스트림 구성 |
+| `http.c` | HTTP 분석 |
+| `detector.c` | 민감 필드 탐지 |
+
+`main.c`는 모듈을 연결한다. 각 모듈의 기능을 다시 구현하는 거대한 함수가 되어서는 안 된다.
+
+## 11. 완료 기준
+
+코드를 작성한 것만으로 완료가 아니다. 다음 조건을 모두 만족해야 한다.
+
+- 프로젝트 빌드와 관련 테스트 통과
+- 패킷 경계 검사
+- 무관한 동작 변경 없음
+- 제한사항 문서화
+- 프로젝트 소유자가 결과를 설명할 수 있음
+
+실행하지 못한 테스트는 이유를 명시한다.

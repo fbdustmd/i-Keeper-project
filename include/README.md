@@ -1,3 +1,5 @@
-# Headers
-Future module interfaces belong here. Add capture.h with Phase 1;
-do not introduce unused placeholder APIs.
+# 헤더 파일
+
+향후 모듈의 공개 인터페이스를 이곳에 둔다.
+Phase 1에서 모듈 설계가 정해지면 capture.h를 추가한다.
+아직 사용하지 않는 임시 API는 만들지 않는다.

@@ -21,17 +21,17 @@ Push-Location -LiteralPath $PSScriptRoot
 try {
     $extraFlags = @()
     if ($WarningsAsErrors) { $extraFlags += '-Werror' }
-    # Keep intermediate files beside the output, avoiding the non-ASCII TEMP path.
+    # 한글 TEMP 경로 문제를 피하도록 중간 파일을 실행 파일 옆에 저장한다.
     & $compiler.Source '-std=c11' '-Wall' '-Wextra' '-Wpedantic' '-save-temps=obj' `
         @extraFlags 'src/main.c' '-o' 'build/netsentry.exe'
     if ($LASTEXITCODE -ne 0) {
-        throw "GCC failed with exit code $LASTEXITCODE."
+        throw "GCC 빌드 실패: 종료 코드 $LASTEXITCODE."
     }
     if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) {
-        throw 'GCC did not produce netsentry.exe.'
+        throw 'GCC가 netsentry.exe를 생성하지 않았습니다.'
     }
 }
 finally {
     Pop-Location
 }
-Write-Output "Built: $executable"
+Write-Output "빌드 완료: $executable"

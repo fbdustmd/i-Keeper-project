@@ -1,130 +1,72 @@
-# NetSentry Execution Plan Rules
+# NetSentry 실행 계획 작성 규칙
 
-## 1. When a Plan Is Required
+## 1. 계획이 필요한 작업
 
-Create an execution plan for work that:
-- touches multiple modules
-- changes data structures shared across modules
-- introduces a new pipeline stage
-- changes TCP Flow behavior
-- changes reassembly behavior
-- requires several tests
+여러 모듈을 수정하거나 공유 자료구조를 바꾸는 작업, 새 처리 단계를 추가하는 작업,
+TCP 연결·재조립 동작을 변경하는 작업, 여러 테스트가 필요한 작업은 실행 계획을 작성한다.
+단순 오타나 독립적인 로그 수정에는 전체 계획이 필요하지 않다.
 
-A tiny typo or isolated logging change does not need a full plan.
+## 2. 위치와 이름
 
-## 2. Location
+- 진행 중: `docs/exec-plans/active/`
+- 완료: `docs/exec-plans/completed/`
+- 과거 초안·여러 단계 참고 자료: `docs/exec-plans/reference/`
 
-Active plans:
+참고 자료는 현재 실행 계획이 아니다. 단계 번호는 ROADMAP.md를 따른다.
+파일 이름 예: `phase-06-flow-manager.md`, `phase-07-basic-reassembly.md`, `bug-truncated-ipv4.md`.
 
-```text
-docs/exec-plans/active/
-```
-
-Completed plans:
-
-```text
-docs/exec-plans/completed/
-```
-
-Use names like:
-
-```text
-phase-06-flow-manager.md
-phase-07-basic-reassembly.md
-bug-truncated-ipv4.md
-```
-
-## 3. Plan Template
-
-Historical or multi-phase reference drafts live in `docs/exec-plans/reference/`.
-They are not current execution plans; use ROADMAP.md for phase numbering.
-
-Each plan should contain:
+## 3. 계획 양식
 
 ```markdown
-# Title
+# 작업 제목
 
-## Goal
+## 목표
+완료 후 어떤 동작이 가능해야 하는가?
 
-What exact behavior should exist when this plan is complete?
+## 제외 범위
+이번에 구현하지 않을 관련 기능은 무엇인가?
 
-## Non-goals
+## 현재 상태
+관련 파일과 함수는 어디까지 구현됐는가?
 
-What related work is intentionally excluded?
+## 설계
+어떤 구조체와 함수를 추가하거나 수정하는가?
 
-## Current State
+## 작업 순서
+- [ ] 첫 번째 작업
+- [ ] 두 번째 작업
+- [ ] 세 번째 작업
 
-Which relevant files/functions already exist?
+## 검증
+정확성을 확인할 명령과 테스트는 무엇인가?
 
-## Design
+## 위험 요소
+어떤 부분에서 문제가 생길 수 있는가?
 
-What structures/functions will be introduced or changed?
-
-## Steps
-
-- [ ] Step 1
-- [ ] Step 2
-- [ ] Step 3
-
-## Validation
-
-Which commands/tests prove the work is correct?
-
-## Risks
-
-What can easily go wrong?
-
-## Completion Notes
-
-What actually changed?
-What limitations remain?
+## 완료 기록
+실제 변경 내용과 남은 제한사항은 무엇인가?
 ```
 
-## 4. Plan Discipline
+## 4. 계획 관리
 
-Plans are working documents.
+계획은 작업하면서 갱신한다. 끝난 항목을 표시하고 설계 변경과 발견한 제한사항을 기록한다.
+구현이 달라졌는데 원래 계획이 그대로 맞는 것처럼 남겨두지 않는다.
 
-During implementation:
-- check off completed steps
-- record design changes
-- record discovered limitations
-- do not pretend the original plan stayed correct if implementation changed
+## 5. 작은 단계
 
-## 5. Small Steps
+연결 관리 전체를 한 번에 구현하지 않는다.
+연결 키 구조 → 연결 조회 → 역방향 일치 → 방향 구분 → 단위 테스트로 나눈다.
+가능하면 각 단계가 끝날 때 빌드 가능한 상태를 유지한다.
 
-Prefer a sequence like:
+## 6. 재조립 계획
 
-```text
-Flow key structure
-→ flow lookup
-→ reverse-direction matching
-→ direction classification
-→ unit tests
-```
+'TCP 재조립 구현' 하나로 묶지 말고 다음처럼 나눈다.
 
-over:
+1. 세그먼트 표현
+2. 순서대로 도착한 데이터 추가
+3. 순서가 뒤바뀐 데이터 저장
+4. 연속 데이터 연결
+5. 완전 중복 처리
+6. 단순 재전송 처리
 
-```text
-Implement complete Flow Manager
-```
-
-Each step should leave the repository buildable whenever practical.
-
-## 6. Reassembly Planning
-
-Never create a plan titled only:
-
-```text
-Implement TCP reassembly
-```
-
-Split it:
-
-1. segment representation
-2. in-order append
-3. out-of-order storage
-4. contiguous flush
-5. exact duplicate handling
-6. simple retransmission handling
-
-More advanced overlap behavior belongs to a later plan.
+복잡한 중첩 처리는 이후 계획으로 분리한다.

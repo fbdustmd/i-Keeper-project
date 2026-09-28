@@ -1,47 +1,47 @@
-# NetSentry Architecture
+# NetSentry 아키텍처
 
-## 1. System Goal
+## 1. 시스템 목표
 
-NetSentry transforms packet data into a small, understandable security finding.
+패킷 데이터를 이해하기 쉬운 보안 분석 결과로 바꾼다.
 
 ```text
 PCAP
   ↓
-Capture
+패킷 입력
   ↓
-Ethernet Parser
+Ethernet 분석
   ↓
-IPv4 Parser
+IPv4 분석
   ↓
-TCP Parser
+TCP 분석
   ↓
-Flow Manager
+연결 관리
   ↓
-TCP Reassembly
+TCP 스트림 재조립
   ↓
-HTTP Parser
+HTTP 분석
   ↓
-Sensitive Data Detector
+민감 필드 탐지
   ↓
-CLI Report
+CLI 보고
 ```
 
-## 2. Design Principle
+## 2. 설계 원칙
 
-Each module answers one question.
+각 모듈은 하나의 질문에 답한다.
 
-- Capture: What bytes were captured?
-- Ethernet: Which L2 frame is this?
-- IPv4: Which hosts and upper protocol are involved?
-- TCP: Which ports, sequence numbers, flags, and payload exist?
-- Flow: Which logical TCP conversation owns this packet?
-- Reassembly: What ordered byte stream can be reconstructed?
-- HTTP: Is the byte stream an HTTP request and what are its fields?
-- Detector: Does the HTTP message contain plaintext sensitive indicators?
+- 캡처: 어떤 바이트를 수집했는가?
+- Ethernet: 어떤 L2 프레임인가?
+- IPv4: 어떤 호스트와 상위 프로토콜이 관련되는가?
+- TCP: 포트, 시퀀스 번호, 플래그, 페이로드(Payload)는 무엇인가?
+- 연결 관리: 어떤 TCP 연결에 속하는가?
+- 재조립: 어떤 순서의 바이트 스트림을 복원할 수 있는가?
+- HTTP: HTTP 요청인가? 어떤 필드가 있는가?
+- 탐지: 평문 민감 필드가 있는가?
 
-## 3. Data Model
+## 3. 데이터 모델
 
-Recommended conceptual structures:
+다음은 권장 개념 구조다. 실제 필드 이름은 바꿀 수 있지만 소유권은 명확해야 한다.
 
 ```c
 typedef struct {
@@ -84,61 +84,35 @@ typedef struct {
 } TCPInfo;
 ```
 
-Exact field names may change, but ownership must remain clear.
+## 4. 연결 식별
 
-## 4. Flow Identity
-
-A TCP connection is identified logically by:
-
-- endpoint A IP
-- endpoint A port
-- endpoint B IP
-- endpoint B port
-- protocol
-
-Because packets travel in both directions, a single connection should contain two independent stream directions.
+TCP 연결은 끝점 A의 IP·포트, 끝점 B의 IP·포트, 프로토콜로 식별한다.
+패킷은 양방향으로 이동하므로 한 연결 안에 독립적인 두 스트림을 둔다.
 
 ```text
-Flow
-├── A → B stream
-└── B → A stream
+연결
+├── A → B 스트림
+└── B → A 스트림
 ```
 
-Sequence numbers are tracked independently per direction.
+시퀀스 번호(Sequence Number)는 방향별로 추적한다.
 
-## 5. Reassembly Boundary
+## 5. 재조립 경계
 
-MVP reassembly is intentionally limited.
+MVP는 시퀀스 번호를 이용해 단순한 연속 스트림을 복원한다.
+TCP 수신 윈도, 혼잡 제어, SACK, 모든 중첩 정책과 재전송 패턴,
+시퀀스 번호 순환 경계까지 완전히 구현할 필요는 없다.
+지원하지 않는 모호한 상황을 숨기지 않는다.
 
-It should reconstruct simple contiguous streams using sequence numbers.
+## 6. HTTP 경계
 
-It does not need to fully implement:
-- TCP receive windows
-- congestion control
-- SACK
-- all overlap policies
-- all retransmission patterns
-- sequence-wrap edge cases
+HTTP 계층은 재조립된 TCP 바이트를 받는다.
+패킷 캡처, 연결 조회, 세그먼트 정렬, 보안 결과 판정을 직접 맡지 않는다.
+탐지 모듈은 분석된 HTTP 필드를 받아 민감 필드의 존재 여부를 판단한다.
 
-Unsupported ambiguity should not be hidden.
+## 7. 오류 처리
 
-## 6. HTTP Boundary
-
-The HTTP layer receives reconstructed TCP bytes.
-
-The HTTP parser must not:
-- capture packets
-- perform flow lookup
-- sort TCP segments
-- detect security findings directly
-
-The detector receives parsed HTTP fields and decides whether a sensitive field exists.
-
-## 7. Error Handling
-
-Parsers should prefer explicit status results.
-
-Example:
+파서는 다음과 같이 명시적인 상태를 반환하는 방식을 우선한다.
 
 ```c
 typedef enum {
@@ -149,19 +123,17 @@ typedef enum {
 } ParseResult;
 ```
 
-Malformed or truncated input must not cause out-of-bounds reads.
+잘못되거나 잘린 입력이 범위 밖 메모리 읽기를 일으키면 안 된다.
 
-## 8. Evolution Order
+## 8. 확장 순서
 
-Architecture should evolve in this order:
+1. 신뢰할 수 있는 패킷 분석
+2. 정확한 연결 식별
+3. 순서대로 도착한 데이터 재조립
+4. 기본 순서 역전 처리
+5. 중복·재전송 처리
+6. HTTP 분석
+7. 민감 필드 탐지
+8. 출력 개선
 
-1. reliable parsing
-2. correct flow identity
-3. simple ordered reassembly
-4. basic out-of-order handling
-5. duplicate/retransmission handling
-6. HTTP parsing
-7. detection
-8. reporting improvements
-
-Do not optimize before correctness is demonstrated.
+정확성을 입증하기 전에 최적화하지 않는다.

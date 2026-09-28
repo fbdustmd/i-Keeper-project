@@ -1,50 +1,60 @@
-# Phase 0 - Minimal build and repository
+# Phase 0 - 최소 빌드와 저장소 구성
 
-## Goal
-Create a reproducible C CLI skeleton in this directory and an independent Git repository.
+## 목표
 
-## Non-goals
-No packet capture, parsers, dependency installation, or remote push.
+이 디렉터리에 재현 가능한 C CLI 기본 구조와 독립 Git 저장소를 만든다.
 
-## Current State
-Nine instruction/design documents exist. No sources, tests or build system exist.
-The parent directory has an unborn Git repository; preserve it and its ZIP.
-GCC is available on Windows; make is not on PATH.
+## 제외 범위
 
-## Design
-Use src/main.c for a small help-only CLI. Provide build.ps1 for the current
-Windows environment and a Makefile for environments with make and a POSIX shell.
-Use C11 and -Wall -Wextra -Wpedantic. Keep future module directories documented.
-Initialize this directory on codex/project-bootstrap and configure origin.
-Align roadmap references with the user's Phase 0-10 sequence.
+당시 작업은 패킷 캡처, 파서, 의존성 설치, 원격 push를 포함하지 않았다.
 
-## Steps
-- [x] Add skeleton, build commands and documentation.
-- [x] Build and check no-argument, help and invalid-argument behavior.
-- [x] Rebuild from clean output and inspect Git exclusions.
-- [x] Review the verified Phase 0 files and prepare the bootstrap commit.
+## 착수 당시 상태
 
-## Validation
-Run build.ps1 and exercise the generated executable with exit-code checks.
-Inspect git diff --check and staged files before committing.
-Makefile execution is unverified until make is available.
+지침·설계 문서 9개만 있고 소스, 테스트, 빌드 시스템은 없었다.
+상위 디렉터리의 커밋 없는 Git 저장소와 ZIP은 보존해야 했다.
+Windows에서 GCC는 사용 가능했으나 PATH에 make가 없었다.
 
-## Risks
-The nested repository must not be accidentally staged as a submodule in the parent.
-Phase 1 still requires a capture backend and runtime environment decision.
+## 설계
 
-## Completion Notes
-Phase 0 development environment completion (2026-09-28): automated smoke tests
-now build with -Werror, check four CLI exit codes and stdout/stderr, and return
-nonzero on failure. Negative probes in an ignored copy demonstrated assertion,
-warning and compilation failure handling. README and TESTING provide one command.
-The repository root and origin are verified; build/ is ignored. Windows
-PowerShell 7.6.5 + MSYS2 UCRT64 GCC 16.1.0 is the verified primary environment.
-Historical PCAP/parser plans are preserved in reference/; the active next plan
-is phase-01-capture-environment.md. Phase 1 can begin with dependency inspection;
-capture runtime/SDK readiness is not claimed. No feature code was changed.
+src/main.c에 도움말 중심 최소 CLI를 만든다.
+현재 Windows용 build.ps1과 make·POSIX 셸 환경용 Makefile을 제공한다.
+C11과 -Wall -Wextra -Wpedantic을 사용하고 향후 모듈 폴더의 용도를 기록한다.
+독립 저장소를 codex/project-bootstrap에서 초기화하고 origin을 설정한다.
+문서의 단계 번호를 사용자의 Phase 0~10 순서에 맞춘다.
 
-Windows GCC build passed without warnings; four CLI cases passed with expected
-exit codes. Clean removed all generated files and rebuild succeeded.
-See docs/TESTING.md for the reproduced temporary-path failure and verified fix.
-The Makefile remains unexecuted. Capture and parsing are not implemented.
+## 작업 순서
+
+- [x] 기본 구조, 빌드 명령, 문서 추가
+- [x] 빌드 및 인자 없음·도움말·잘못된 인자 확인
+- [x] 산출물 정리 후 재빌드와 Git 제외 규칙 확인
+- [x] 검증된 Phase 0 파일 검토와 커밋 준비
+
+## 검증
+
+build.ps1을 실행하고 생성 프로그램의 종료 코드를 확인한다.
+커밋 전 git diff --check와 스테이징된 파일을 검토한다.
+make를 사용할 수 있기 전까지 Makefile 실행은 미검증으로 기록한다.
+
+## 위험 요소
+
+내부 저장소를 상위 저장소의 서브모듈로 실수로 추가하지 않는다.
+캡처 라이브러리와 실행 환경 판단은 Phase 1에서 필요하다.
+
+## 완료 기록
+
+2026-09-28에 Phase 0 개발환경을 완료했다.
+PowerShell 7.6.5 + MSYS2 UCRT64 GCC 16.1.0에서 경고 없이 빌드됐고,
+CLI 4개 사례가 예상 종료 코드로 통과했다. 정리 후 재빌드도 성공했다.
+
+이후 자동 검증은 -Werror 빌드, CLI 종료 코드·stdout/stderr 검사,
+실패 시 비정상 종료를 포함하도록 완성됐다.
+Git 제외 복사본에서 잘못된 기대값·경고·컴파일 오류의 실패 감지도 검증했다.
+README와 TESTING에 한 번의 검증 명령을 안내한다.
+
+저장소 루트와 origin을 확인했고 build/는 Git에서 제외된다.
+기존 PCAP·파서 계획은 reference/에 보존했고,
+다음 계획은 phase-01-capture-environment.md다.
+Phase 1은 의존성 확인부터 시작할 수 있으나 캡처 SDK 준비 완료를 뜻하지 않는다.
+
+당시 기능 코드는 변경하지 않았다. 임시 경로 오류 재현과 해결은 docs/TESTING.md에 기록했다.
+Makefile은 실행하지 않았고 캡처·파싱은 아직 미구현이다.

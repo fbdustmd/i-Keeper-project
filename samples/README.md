@@ -1,3 +1,4 @@
-# Sample captures
-Add small synthetic or authorized lab captures with documented expected results.
-No captures are included yet. Do not commit real credentials or private traffic.
+# 샘플 캡처
+
+예상 결과를 설명할 수 있는 작은 합성 패킷 또는 허가된 실습 캡처를 추가한다.
+현재 포함된 캡처 파일은 없다. 실제 자격 증명이나 사적인 트래픽을 커밋하지 않는다.
