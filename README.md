@@ -85,6 +85,10 @@ Phase 1은 인터페이스 선택과 실시간 캡처입니다. 캡처 라이브
 Git 명령은 이 디렉터리에서 실행하고, 상위 저장소에서 이 폴더를 서브모듈로 추가하지 않습니다.
 origin은 https://github.com/fbdustmd/i-Keeper-project.git 입니다.
 각 Phase는 기능 브랜치에서 검증 후 커밋합니다.
+검증과 diff 검토 후 해당 브랜치를 GitHub에 push합니다. main은 검증된 기준으로
+유지하고, 이후 기능은 가능하면 PR로 검토하며 자동 merge나 force push는 하지 않습니다.
+최초 게시 브랜치는 `codex/project-bootstrap`입니다. main 기준 브랜치를 정하기
+전에는 Phase 1 브랜치를 임의로 만들지 않습니다.
 
 현재 작업 공간에서 명령 실행 전에 루트를 확인합니다.
 
