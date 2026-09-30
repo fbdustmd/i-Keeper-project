@@ -2,7 +2,7 @@
 
 ## 프로젝트 소개
 
-C와 libpcap으로 패킷을 분석하는 학습용 CLI 프로젝트입니다.
+NetSentry는 평문 네트워크 통신에서 민감정보가 노출되는 과정을 이해하기 위한 C 기반 분석 프로젝트입니다. 패킷 분석과 TCP 연결 관리·스트림 재조립을 직접 구현하며 학습하는 것이 목표입니다.
 최종 흐름은 패킷 캡처(Packet Capture) → Ethernet → IPv4 → TCP
 → 흐름 식별(Flow Tracking) → 제한적 TCP 스트림 재조립(TCP Stream Reassembly)
 → HTTP/1.x → 민감 필드 탐지입니다. 민감 값은 마스킹하며 HTTPS를 복호화하지 않습니다.
@@ -93,15 +93,16 @@ origin은 https://github.com/fbdustmd/i-Keeper-project.git 입니다.
 각 Phase는 기능 브랜치에서 검증 후 커밋합니다.
 검증과 diff 검토 후 해당 브랜치를 GitHub에 push합니다. main은 검증된 기준으로
 유지하고, 이후 기능은 가능하면 PR로 검토하며 자동 merge나 force push는 하지 않습니다.
-최초 게시 브랜치는 `codex/project-bootstrap`입니다. main 기준 브랜치를 정하기
-전에는 Phase 1 브랜치를 임의로 만들지 않습니다.
+2026-09-30 원격 기본 브랜치는 `codex/project-bootstrap`으로 확인했습니다. 이번 작업은 그 이력에서 이어가며 main 생성이나 기본 브랜치 변경 없이 로컬 커밋만 진행합니다.
 
 현재 작업 공간에서 명령 실행 전에 루트를 확인합니다.
 
 ```powershell
-Set-Location -LiteralPath 'C:\Users\류연승\Documents\ChatGPT\키퍼 프로젝트\netsentry_harness_instructions\netsentry_harness'
+Set-Location -LiteralPath 'C:\Users\류연승\Documents\ChatGPT\키퍼 프로젝트\NetSentry'
 git rev-parse --show-toplevel
 git status
 ```
 
-출력 루트는 위 netsentry_harness 경로여야 합니다. 상위 저장소는 수정하지 않습니다.
+출력 루트는 위 NetSentry 경로여야 합니다. 상위 저장소는 수정하지 않습니다.
+
+개발 지침과 검토 시점은 [개발 안내](docs/DEVELOPMENT.md)를 참고합니다.

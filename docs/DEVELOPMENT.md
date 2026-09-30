@@ -1,14 +1,13 @@
-# NetSentry AI 개발 작업 안내
+# NetSentry 개발 안내
 
-이 폴더는 AI와 함께 개발할 때 사용할 저장소 지침을 담고 있다.
+NetSentry는 C 기반 패킷 분석과 TCP 재조립을 배우는 프로젝트다. 이 문서는 개발 구조, 작은 작업 요청 방법과 사용자 검토 시점을 안내한다. 개발 규칙은 루트 AGENTS.md를 따른다.
 
 ## 권장 저장소 구조
 
 ```text
-netsentry/
+NetSentry/
 ├── AGENTS.md
 ├── ARCHITECTURE.md
-├── HARNESS_README.md
 ├── README.md
 ├── build.ps1
 ├── src/
@@ -16,6 +15,7 @@ netsentry/
 ├── tests/
 ├── samples/
 ├── docs/
+│   ├── DEVELOPMENT.md
 │   ├── PROJECT_SPEC.md
 │   ├── IMPLEMENTATION_RULES.md
 │   ├── TESTING.md
