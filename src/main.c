@@ -14,7 +14,7 @@ static void print_usage(FILE *stream)
           "        netsentry --interface NAME [--count N] [--duration SECONDS] [--filter BPF]\n"
           "기본 제한: 100개 또는 30초 중 먼저 도달한 조건. Ctrl+C로 종료합니다.\n"
           "--count: 1~1000000, --duration: 1~86400초. 인터페이스를 직접 지정하세요.\n"
-          "Phase 1: 길이·링크 타입·캡처 시각(UTC, 소수점 6자리)을 출력합니다. 원본 내용은 출력하지 않습니다.\n");
+          "Phase 1: 길이·링크 타입·캡처 시각(PC 현지 시간, 소수점 6자리)을 출력합니다. 원본 내용은 출력하지 않습니다.\n");
 }
 
 static bool parse_positive(const char *text, uint32_t maximum, uint32_t *output)

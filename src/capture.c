@@ -103,12 +103,12 @@ static int format_capture_time(const struct timeval *timestamp, char *buffer, si
         return EXIT_FAILURE;
     }
     time_t seconds = (time_t)timestamp->tv_sec;
-    const struct tm *utc = gmtime(&seconds);
+    const struct tm *local = localtime(&seconds);
     char date[32];
-    if (utc == NULL || strftime(date, sizeof(date), "%Y-%m-%dT%H:%M:%S", utc) == 0) {
+    if (local == NULL || strftime(date, sizeof(date), "%Y-%m-%d %H:%M:%S", local) == 0) {
         return EXIT_FAILURE;
     }
-    int length = snprintf(buffer, capacity, "%s.%06ldZ", date, (long)timestamp->tv_usec);
+    int length = snprintf(buffer, capacity, "%s.%06ld", date, (long)timestamp->tv_usec);
     return length >= 0 && (size_t)length < capacity ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
