@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([Parameter(Mandatory)][string]$Interface)
 $ErrorActionPreference = 'Stop'
 if ($Interface -ne '\Device\NPF_Loopback') {

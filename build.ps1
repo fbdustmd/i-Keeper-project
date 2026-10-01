@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([switch]$Clean, [switch]$WarningsAsErrors,
       [string]$NpcapSdk = '.deps/npcap-sdk')
 

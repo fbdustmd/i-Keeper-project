@@ -188,3 +188,22 @@ gcc -Wall -Wextra -Wpedantic
 버그를 발견하면 최소 재현 사례 → 실패 테스트 → 수정 → 새 테스트 통과
 → 기존 테스트 통과 순으로 확인한다.
 반복되는 파서 버그를 국소 예외 처리만 추가해 덮지 않는다.
+
+## Windows PowerShell 한글 스크립트 수정 — 2026-10-01
+
+Windows PowerShell 5.1은 BOM 없는 UTF-8 스크립트를 ANSI로 해석할 수 있다.
+그 결과 한글 출력이 깨지고 smoke.ps1에서 문자열·해시 구문 오류가 발생했다.
+build.ps1 및 tests/의 세 PowerShell 스크립트에 UTF-8 BOM을 추가했다.
+Windows PowerShell에서 엄격 빌드와 기본 테스트 17개가 통과했고 PowerShell 7에서도 동일 테스트가 통과했다.
+이 수정에서 실시간 캡처를 다시 실행하지는 않았다. 기존의 Windows PowerShell 5.1 미검증 표기는
+이제 실시간·모의 테스트에 해당하며 빌드·smoke는 검증했다.
+
+스크립트 실행 정책에 막히면 현재 창에서만 다음을 적용한 뒤 다시 실행한다.
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+.\tests\smoke.ps1
+```
+
+PowerShell 스크립트를 편집할 때 UTF-8 BOM을 유지한다.
+참고: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_character_encoding
