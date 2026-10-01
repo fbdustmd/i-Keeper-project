@@ -98,3 +98,10 @@ git status
 이후 게시할 때도 실제 구현·검증 상태를 확인하고 한국어 설명과 커밋 메시지를 사용합니다.
 
 [개발 안내](docs/DEVELOPMENT.md) · [구조 정리 기록](docs/REPOSITORY_CLEANUP.md) · [이전 캡처 코드 검토](docs/LEGACY_CAPTURE_REVIEW.md)
+
+## 한글 출력
+
+PowerShell 스크립트는 UTF-8 BOM을 유지한다. 실행 파일은 콘솔에 Unicode를 직접 출력하므로
+직접 실행할 때 chcp나 시스템 로캘을 바꿀 필요가 없다. 파일·파이프 출력은 UTF-8이다.
+콘솔 회귀 테스트는 `.\tests\console.ps1`로 실행한다.
+`--count 5`만 지정하면 인터페이스 누락 오류가 정상이다. 캡처에는 `--interface`가 필요하다.

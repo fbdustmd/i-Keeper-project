@@ -1,4 +1,5 @@
 #include "capture.h"
+#include "output.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -7,14 +8,13 @@
 
 static void print_usage(FILE *stream)
 {
-    fputs("NetSentry - 학습용 네트워크 분석\n"
+    output_printf(stream, "NetSentry - 학습용 네트워크 분석\n"
           "사용법: netsentry [--help]\n"
           "        netsentry --list\n"
           "        netsentry --interface NAME [--count N] [--duration SECONDS] [--filter BPF]\n"
           "기본 제한: 100개 또는 30초 중 먼저 도달한 조건. Ctrl+C로 종료합니다.\n"
           "--count: 1~1000000, --duration: 1~86400초. 인터페이스를 직접 지정하세요.\n"
-          "Phase 1: 길이와 링크 타입만 출력하며 원본 패킷 내용은 출력하지 않습니다.\n",
-          stream);
+          "Phase 1: 길이와 링크 타입만 출력하며 원본 패킷 내용은 출력하지 않습니다.\n");
 }
 
 static bool parse_positive(const char *text, uint32_t maximum, uint32_t *output)
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     }
     CaptureOptions options = {NULL, NULL, 100, 30};
     if (!parse_options(argc, argv, &options)) {
-        fputs("오류: 인자·범위·중복 옵션을 확인하세요.\n", stderr);
+        output_printf(stderr, "오류: 인자·범위·중복 옵션을 확인하세요.\n");
         print_usage(stderr);
         return EXIT_FAILURE;
     }

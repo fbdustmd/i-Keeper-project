@@ -21,3 +21,6 @@ capture.ps1은 로컬 UDP 임시 포트로만 실습 데이터를 보내고 해�
 ctrlc_test.c는 호출자의 콘솔과 분리된 테스트 콘솔에서만 Ctrl+C를 발생시킨다.
 
 SDK 기본 경로는 `.deps/npcap-sdk`다. 자세한 결과와 제한사항은 [테스트 안내](../docs/TESTING.md)에 있다.
+
+콘솔 한글 출력 검증: `.\tests\console.ps1`.
+별도 CP949/UTF-8 콘솔 화면에서 도움말·오류·장치 목록의 한글을 확인하며 실제 캡처를 열지 않는다.

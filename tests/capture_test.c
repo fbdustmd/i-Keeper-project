@@ -1,4 +1,5 @@
 #include "capture.h"
+#include "output.h"
 #include <pcap.h>
 #include <assert.h>
 #include <stdio.h>
@@ -82,6 +83,6 @@ int main(void)
     options.interface_name = "missing";
     opened = closed = 0;
     assert(capture_run(&options) == 1 && opened == 0 && closed == 0);
-    puts("캡처 모의 테스트 통과: 13개 시나리오, 잘린 길이, 실패 경로 자원 해제");
+    output_printf(stdout, "캡처 모의 테스트 통과: 13개 시나리오, 잘린 길이, 실패 경로 자원 해제\n");
     return 0;
 }

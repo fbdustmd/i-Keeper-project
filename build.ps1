@@ -9,7 +9,7 @@ $executable = Join-Path $buildDirectory 'netsentry.exe'
 if ($Clean) {
     foreach ($name in @('netsentry.exe', 'netsentry-main.i', 'netsentry-main.s', 'netsentry-main.o',
                        'netsentry-capture.i', 'netsentry-capture.s', 'netsentry-capture.o',
-                       'wpcap.dll', 'Packet.dll')) {
+                       'netsentry-output.i', 'netsentry-output.s', 'netsentry-output.o', 'wpcap.dll', 'Packet.dll')) {
         $artifact = Join-Path $buildDirectory $name
         if (Test-Path -LiteralPath $artifact) {
             Remove-Item -LiteralPath $artifact
@@ -33,8 +33,8 @@ try {
     $extraFlags = @()
     if ($WarningsAsErrors) { $extraFlags += '-Werror' }
     # 한글 TEMP 경로 문제를 피하도록 중간 파일을 실행 파일 옆에 저장한다.
-    & $compiler.Source '-std=c11' '-Wall' '-Wextra' '-Wpedantic' '-save-temps=obj' `
-        @extraFlags '-I' 'include' '-I' $sdkInclude 'src/main.c' 'src/capture.c' `
+    & $compiler.Source '-std=c11' '-finput-charset=UTF-8' '-fexec-charset=UTF-8' '-Wall' '-Wextra' '-Wpedantic' '-save-temps=obj' `
+        @extraFlags '-I' 'include' '-I' $sdkInclude 'src/main.c' 'src/capture.c' 'src/output.c' `
         $sdkLibrary '-o' 'build/netsentry.exe'
     if ($LASTEXITCODE -ne 0) {
         throw "GCC 빌드 실패: 종료 코드 $LASTEXITCODE."

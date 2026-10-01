@@ -207,3 +207,19 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 
 PowerShell 스크립트를 편집할 때 UTF-8 BOM을 유지한다.
 참고: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_character_encoding
+
+## 실행 파일 한글 출력 수정 — 2026-10-01
+
+스크립트 BOM 문제와 별개로 CP949 콘솔에서 UTF-8 실행 파일 출력이 깨지는 문제를 수정했다.
+output.c가 콘솔에는 WriteConsoleW, 파일·파이프에는 UTF-8을 사용한다.
+시스템 설정과 PowerShell 프로필, 사용자 콘솔 코드 페이지는 변경하지 않는다.
+
+```powershell
+.\tests\console.ps1
+```
+
+별도 콘솔을 CP949와 UTF-8로 설정하고 실제 화면 버퍼에서 도움말·잘못된 인자·장치 목록의 한글을 검사한다.
+총 6개 사례가 통과했고 프로그램 종료 후에도 코드 페이지가 유지됐다.
+Windows PowerShell과 PowerShell 7의 기존 CLI 17개, 모의 캡처, 실제 loopback 테스트도 통과했다.
+직접 콘솔 출력과 달리 PowerShell 파이프/리디렉션은 셸의 디코딩·저장 규칙이 추가로 적용된다.
+파이프 소비자는 UTF-8을 지정해야 한다. 사용자 터미널의 폰트 렌더링은 직접 확인이 필요하다.
