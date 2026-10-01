@@ -33,8 +33,8 @@ NetSentry/
 매번 프로젝트 전체 설명을 붙여 넣을 필요는 없다. 다음처럼 범위를 좁혀 요청한다.
 
 ```text
-docs/exec-plans/active/phase-01-capture-environment.md에 따라 Phase 1을 준비하라.
-AGENTS.md를 따르고 Phase 2는 구현하지 마라.
+docs/ROADMAP.md에 따라 Phase 2 실행 계획을 작성하라.
+AGENTS.md를 따르고 Phase 3 이후는 구현하지 마라.
 변경 결과를 빌드하고 테스트하라.
 ```
 

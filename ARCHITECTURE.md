@@ -137,3 +137,35 @@ typedef enum {
 8. 출력 개선
 
 정확성을 입증하기 전에 최적화하지 않는다.
+
+## 9. Phase 1의 실제 경계 — 2026-09-30
+
+현재 구현은 `main.c`의 인자 검증과 `capture.c`의 Npcap 수명 관리까지다.
+위의 PacketView·파서·연결·재조립 구조는 후속 설계이며 아직 C 코드에 구현하지 않았다.
+
+```text
+main.c: CaptureOptions 생성
+  → capture_run: 명시적 장치 확인 → 열기 → 링크 타입·BPF·비차단 모드 설정
+    → pcap_next_ex: 캡처 헤더 + Npcap 소유 바이트
+      → 현재: 번호·caplen·원래 길이만 출력
+      → 종료 조건: 수 제한 / 시간 제한 / Ctrl+C / 오류
+    → pcap_close
+```
+
+`caplen`은 실제 접근 가능한 바이트 수이고 `len`은 원래 패킷 길이다.
+둘이 다르면 잘린 캡처일 수 있으므로 이후 파서는 `len`을 메모리 읽기 한도로 사용하면 안 된다.
+현재는 caplen > len을 오류 처리하고, caplen < len은 그대로 메타데이터를 출력한다.
+패킷 바이트는 복사하지 않는다. 향후 파서는 다음 읽기 전까지 빌린 바이트를 사용하고,
+재조립처럼 오래 보관해야 할 데이터만 해당 모듈이 복사·해제한다.
+
+Phase 5 PCAP 입력도 같은 분석 함수에 바이트·길이·링크 타입을 전달한다.
+입력 루프가 파일/실시간 종료 조건을 관리하고 파서는 입력 출처를 알 필요가 없도록 한다.
+지금은 미사용 콜백 프레임워크나 추상 입력 계층을 만들지 않는다.
+
+시간 측정은 단조 증가하는 `GetTickCount64`를 사용한다.
+비차단 읽기에서 패킷이 없으면 10ms 쉬고 종료 플래그와 시간을 다시 확인한다.
+Ctrl+C 처리기는 원자적으로 플래그만 바꾸고 핸들은 주 실행 흐름이 한 번 닫는다.
+Windows 콘솔의 상속된 Ctrl+C 무시 설정도 해제한다.
+
+근거: [Npcap 비차단 API](https://npcap.com/guide/wpcap/pcap_setnonblock.html),
+[Windows 콘솔 종료 처리](https://learn.microsoft.com/en-us/windows/console/setconsolectrlhandler).

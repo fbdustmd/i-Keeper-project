@@ -1,15 +1,10 @@
-CC = gcc
-CFLAGS ?= -std=c11 -Wall -Wextra -Wpedantic
-CPPFLAGS ?=
-LDFLAGS ?=
-LDLIBS ?=
+# Windows + MSYS2 UCRT64용 PowerShell 빌드 진입점
+.PHONY: all test clean
+all:
+	pwsh -NoProfile -File ./build.ps1 -WarningsAsErrors
 
-.PHONY: all clean
-all: build/netsentry
-
-build/netsentry: src/main.c
-	mkdir -p build
-	$(CC) $(CPPFLAGS) $(CFLAGS) src/main.c $(LDFLAGS) $(LDLIBS) -o $@
+test:
+	pwsh -NoProfile -File ./tests/smoke.ps1
 
 clean:
-	rm -f build/netsentry build/netsentry.exe
+	pwsh -NoProfile -File ./build.ps1 -Clean

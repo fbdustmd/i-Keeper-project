@@ -2,100 +2,89 @@
 
 ## 프로젝트 소개
 
-NetSentry는 평문 네트워크 통신에서 민감정보가 노출되는 과정을 이해하기 위한 C 기반 분석 프로젝트입니다. 패킷 분석과 TCP 연결 관리·스트림 재조립을 직접 구현하며 학습하는 것이 목표입니다.
-최종 흐름은 패킷 캡처(Packet Capture) → Ethernet → IPv4 → TCP
-→ 흐름 식별(Flow Tracking) → 제한적 TCP 스트림 재조립(TCP Stream Reassembly)
-→ HTTP/1.x → 민감 필드 탐지입니다. 민감 값은 마스킹하며 HTTPS를 복호화하지 않습니다.
+NetSentry는 평문 통신에서 민감정보가 노출되는 과정을 이해하기 위한 **C 기반 네트워크 분석 학습 프로젝트**입니다. 패킷 분석부터 TCP 연결 관리와 스트림 재조립까지 단계적으로 직접 구현합니다.
 
-## 현재 개발 상태
+**현재 Phase 1:** 사용자가 선택한 인터페이스에서 패킷을 수집하고 번호·캡처 길이·원래 길이·링크 타입을 출력합니다. 원본 패킷 내용은 출력하거나 저장하지 않습니다.
 
-Phase 0 개발환경 검증 완료 / Phase 1 캡처 환경 준비 단계.
+**미구현:** Ethernet·IPv4·TCP 파서, PCAP 파일 입력, 연결 관리, 스트림 재조립, HTTP 분석, 민감 필드 탐지. HTTPS 복호화는 목표가 아닙니다.
 
-## 주요 기능
+## 개발 환경과 빌드
 
-Phase 0 최소 CLI: 기본 안내, `--help`, 잘못된 인자의 오류 종료.
-패킷 캡처와 분석은 아직 구현되지 않았습니다. 현재 빌드에는 libpcap이 필요하지 않습니다.
+Windows + PowerShell 7 + MSYS2 UCRT64 x64 GCC + Npcap 런타임·SDK를 사용합니다.
+SDK는 Git에 포함하지 않습니다. 최초 준비는 [개발 환경](docs/ENVIRONMENT.md)을 따릅니다.
 
-## 개발 환경
-
-- Windows
-- PowerShell (검증 버전은 docs/TESTING.md 참고)
-- PATH에 등록된 MSYS2 UCRT64 GCC
-
-## 빌드 방법
-
-PowerShell과 PATH에 등록된 GCC가 필요합니다. 프로젝트 루트에서 실행합니다.
+프로젝트 루트에서 실행합니다.
 
 ```powershell
-.\build.ps1
+.\build.ps1 -WarningsAsErrors
+.\build\netsentry.exe --help
+.\build\netsentry.exe --list
 ```
 
-빌드 스크립트는 자신의 위치를 기준으로 경로를 계산하므로 공백·한글 경로를 지원합니다.
-`-std=c11 -Wall -Wextra -Wpedantic`으로 컴파일합니다.
-Windows GCC의 한글 임시 경로 문제를 피하도록 `-save-temps=obj`로 중간 파일을
-`build/`에 저장합니다. `-Clean`은 이 빌드가 생성한 실행 파일과 중간 파일을 제거합니다.
-정리가 필요할 때만 `.\build.ps1 -Clean`을 실행한 뒤 다시 빌드합니다.
+C11, `-Wall -Wextra -Wpedantic -Werror`로 검증합니다. 한글 경로에서 GCC 임시 파일 오류를 피하기 위해 `-save-temps=obj`를 사용합니다.
+빌드 시 설치된 Npcap DLL 두 개를 Git 제외 `build/`에 복사합니다. 전역 PATH나 드라이버 설정은 변경하지 않습니다.
+`.\build.ps1 -Clean`은 프로그램 빌드 산출물과 복사한 DLL을 정리합니다.
+Makefile은 동일한 PowerShell 명령을 호출하는 Windows용 대체 진입점이며, 현재 환경에서는 make가 없어 미검증입니다.
 
 ## 실행 방법
 
+`--list`에 나온 이름을 `--interface`에 직접 지정합니다. 다음은 로컬 loopback에서 10개 또는 5초 중 먼저 도달한 조건으로 종료하는 예입니다.
+
 ```powershell
-.\build\netsentry.exe --help
+.\build\netsentry.exe --interface '\Device\NPF_Loopback' --count 10 --duration 5
 ```
+
+- `--count`: 1~1000000, 기본 100개
+- `--duration`: 1~86400초, 기본 30초. 장치 설정이 끝난 뒤 캡처 루프의 시간입니다.
+- `--filter`: 선택적 BPF 캡처 필터. 예: `--filter 'ip and tcp port 80'`
+- Ctrl+C: 트래픽이 없어도 종료 요청을 처리하고 캡처 핸들을 닫습니다.
+- 정상 종료는 0, 인자·장치·캡처 오류는 1입니다.
+
+기본 캡처는 비 promiscuous 모드이며 인터페이스를 자동 선택하지 않습니다.
+이 PC의 loopback은 Ethernet이 아닌 `DLT_NULL`입니다. 현재는 링크 타입을 기록할 뿐 헤더를 분석하지 않습니다.
 
 ## 테스트 방법
 
 ```powershell
+# 실제 캡처를 열지 않는 검증
 .\tests\smoke.ps1
+.\tests\unit.ps1
+
+# 허가된 로컬 실습: 인터페이스를 명시해야 실행 가능
+.\tests\capture.ps1 -Interface '\Device\NPF_Loopback'
 ```
 
-한 명령으로 경고를 오류로 취급하는 빌드와 CLI 4개 사례를 검증합니다.
-성공 시 `모든 기본 동작 검증을 통과했습니다.`와 종료 코드 0, 실패 시 종료 코드 1입니다.
-
-## make 환경
-
-Windows의 기본 빌드 경로는 `build.ps1`입니다.
-Makefile은 Unix/MSYS2 환경에서 선택적으로 사용합니다.
-
-GCC, GNU make와 POSIX 셸이 있는 환경을 위한 대체 경로입니다.
-현재 Windows 환경에서는 make가 없어 이 경로는 아직 검증하지 않았습니다.
-
-```sh
-make
-./build/netsentry --help
-make clean
-```
+2026-09-30 검증: 기본 CLI 17개, 모의 캡처 13개 시나리오와 잘못된 설정·없는 장치, 실제 loopback 패킷 5개(각 64바이트), 무트래픽 시간 제한·Ctrl+C, 잘못된 BPF 필터 처리 통과. 컴파일 경고 없음.
+자세한 근거와 제한은 [테스트 안내](docs/TESTING.md)를 참고합니다.
 
 ## 프로젝트 구조
 
-- `src/`: 구현, 현재 main.c만 존재
-- `include/`: 향후 모듈 헤더
-- `tests/`: smoke.ps1과 테스트 안내; 기능별 테스트는 향후 추가
-- `samples/`: 향후 작은 실습용 PCAP
-- `docs/`: 요구사항, 로드맵, 검증, 실행 계획
-- `ARCHITECTURE.md`: 모듈 경계와 데이터 흐름
-- `AGENTS.md`: 개발 규칙
+```text
+NetSentry/
+├── AGENTS.md
+├── ARCHITECTURE.md
+├── README.md
+├── build.ps1
+├── Makefile
+├── src/             # main.c: CLI, capture.c: 캡처 수명 관리
+├── include/         # capture.h
+├── tests/           # 기본·모의·실시간 검증
+├── samples/         # 향후 실습용 PCAP, 현재 안내 문서
+└── docs/            # 명세·설계·검증·실행 계획
+```
 
-## 개발 로드맵
+## 최종 목표와 개발 로드맵
 
-개발 순서는 [ROADMAP](docs/ROADMAP.md), 검증 방법은 [TESTING](docs/TESTING.md)을 따릅니다.
+패킷 캡처(Packet Capture) → Ethernet → IPv4 → TCP → 흐름 식별(Flow Tracking)
+→ TCP 스트림 재조립(TCP Stream Reassembly) → HTTP/1.x 요청 → 민감 필드 탐지·마스킹.
 
-## 향후 계획
-
-Phase 1은 인터페이스 선택과 실시간 캡처입니다. 캡처 라이브러리·드라이버 및
-실행 환경은 Phase 1 설계에서 확정하고 실제 패킷으로 검증합니다.
+Phase 0·1은 검증했고 다음은 Phase 2 Ethernet 파서입니다.
+PCAP 입력은 Phase 5, 연결 관리는 Phase 6, 제한적 재조립은 Phase 7에 구현합니다.
+전체 단계는 [로드맵](docs/ROADMAP.md), 모듈 경계는 [아키텍처](ARCHITECTURE.md)에 있습니다.
 
 ## Git 작업 방식
 
-이 디렉터리를 독립 저장소 루트로 사용합니다.
-상위 `키퍼 프로젝트`의 기존 저장소와 ZIP은 보존하며 이 저장소에 포함하지 않습니다.
-Git 명령은 이 디렉터리에서 실행하고, 상위 저장소에서 이 폴더를 서브모듈로 추가하지 않습니다.
-origin은 https://github.com/fbdustmd/i-Keeper-project.git 입니다.
-각 Phase는 기능 브랜치에서 검증 후 커밋합니다.
-검증과 diff 검토 후 해당 브랜치를 GitHub에 push합니다. main은 검증된 기준으로
-유지하고, 이후 기능은 가능하면 PR로 검토하며 자동 merge나 force push는 하지 않습니다.
-2026-09-30 원격 기본 브랜치는 `codex/project-bootstrap`으로 확인했습니다. 이번 작업은 그 이력에서 이어가며 main 생성이나 기본 브랜치 변경 없이 로컬 커밋만 진행합니다.
-
-현재 작업 공간에서 명령 실행 전에 루트를 확인합니다.
+이 폴더는 독립 Git 저장소입니다. 상위 작업 공간의 별도 저장소와 원본 ZIP은 보존하며 합치거나 서브모듈로 추가하지 않습니다.
 
 ```powershell
 Set-Location -LiteralPath 'C:\Users\류연승\Documents\ChatGPT\키퍼 프로젝트\NetSentry'
@@ -103,6 +92,9 @@ git rev-parse --show-toplevel
 git status
 ```
 
-출력 루트는 위 NetSentry 경로여야 합니다. 상위 저장소는 수정하지 않습니다.
+원격은 https://github.com/fbdustmd/i-Keeper-project.git 입니다.
+2026-09-30 확인한 원격 기본 브랜치와 현재 작업 브랜치는 `codex/project-bootstrap`입니다.
+이번 구조 정리와 Phase 1은 별도 로컬 커밋으로 관리하며 push·merge·기본 브랜치 변경은 하지 않습니다.
+이후 게시할 때도 실제 구현·검증 상태를 확인하고 한국어 설명과 커밋 메시지를 사용합니다.
 
-개발 지침과 검토 시점은 [개발 안내](docs/DEVELOPMENT.md)를 참고합니다.
+[개발 안내](docs/DEVELOPMENT.md) · [구조 정리 기록](docs/REPOSITORY_CLEANUP.md) · [이전 캡처 코드 검토](docs/LEGACY_CAPTURE_REVIEW.md)

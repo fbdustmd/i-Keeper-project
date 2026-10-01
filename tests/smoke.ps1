@@ -11,7 +11,20 @@ try {
         @{ Name = '인자 없음'; Arguments = ''; Expected = 0 },
         @{ Name = '도움말'; Arguments = '--help'; Expected = 0 },
         @{ Name = '잘못된 인자'; Arguments = '--invalid'; Expected = 1 },
-        @{ Name = '추가 인자'; Arguments = '--help extra'; Expected = 1 }
+        @{ Name = '추가 인자'; Arguments = '--help extra'; Expected = 1 },
+        @{ Name = '목록 옵션'; Arguments = '--list --count 1'; Expected = 1 },
+        @{ Name = '장치 누락'; Arguments = '--interface'; Expected = 1 },
+        @{ Name = '0개 금지'; Arguments = '--interface invalid --count 0'; Expected = 1 },
+        @{ Name = '음수 시간'; Arguments = '--interface invalid --duration -1'; Expected = 1 },
+        @{ Name = '숫자 초과'; Arguments = '--interface invalid --count 99999999999999999999'; Expected = 1 },
+        @{ Name = '중복 옵션'; Arguments = '--interface invalid --count 1 --count 2'; Expected = 1 },
+        @{ Name = '장치 목록'; Arguments = '--list'; Expected = 0; Pattern = '인터페이스 목록' },
+        @{ Name = '없는 장치'; Arguments = '--interface netsentry-nonexistent-device'; Expected = 1 },
+        @{ Name = '수 제한 초과'; Arguments = '--interface invalid --count 1000001'; Expected = 1 },
+        @{ Name = '시간 제한 초과'; Arguments = '--interface invalid --duration 86401'; Expected = 1 },
+        @{ Name = '숫자 뒤 문자'; Arguments = '--interface invalid --count 1abc'; Expected = 1 },
+        @{ Name = '장치 없이 제한'; Arguments = '--count 1'; Expected = 1 },
+        @{ Name = '중복 장치'; Arguments = '--interface invalid --interface invalid'; Expected = 1 }
     )
 
     foreach ($case in $cases) {
@@ -41,7 +54,8 @@ try {
                 throw "$($case.Name): 예상 종료 코드 $($case.Expected), 실제 종료 코드 $($process.ExitCode)."
             }
             if ($case.Expected -eq 0) {
-                if ($stdout -notmatch '사용법: netsentry' -or $stderr.Length -ne 0) {
+                $pattern = if ($case.ContainsKey('Pattern')) { $case.Pattern } else { '사용법: netsentry' }
+                if ($stdout -notmatch $pattern -or $stderr.Length -ne 0) {
                     throw "$($case.Name): stdout에 사용법이 있어야 하고 stderr는 비어 있어야 합니다."
                 }
             }
