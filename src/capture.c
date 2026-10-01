@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 static volatile LONG stop_requested;
 
@@ -95,6 +96,22 @@ static int apply_filter(pcap_t *handle, const char *expression)
     return EXIT_SUCCESS;
 }
 
+static int format_capture_time(const struct timeval *timestamp, char *buffer, size_t capacity)
+{
+    /* pcap_open_live의 기본 단위는 초 + 마이크로초다. 출력 시각으로 대체하지 않는다. */
+    if (timestamp->tv_sec < 0 || timestamp->tv_usec < 0 || timestamp->tv_usec >= 1000000) {
+        return EXIT_FAILURE;
+    }
+    time_t seconds = (time_t)timestamp->tv_sec;
+    const struct tm *utc = gmtime(&seconds);
+    char date[32];
+    if (utc == NULL || strftime(date, sizeof(date), "%Y-%m-%dT%H:%M:%S", utc) == 0) {
+        return EXIT_FAILURE;
+    }
+    int length = snprintf(buffer, capacity, "%s.%06ldZ", date, (long)timestamp->tv_usec);
+    return length >= 0 && (size_t)length < capacity ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
 static int capture_loop(pcap_t *handle, const CaptureOptions *options)
 {
     ULONGLONG started = GetTickCount64();
@@ -129,10 +146,18 @@ static int capture_loop(pcap_t *handle, const CaptureOptions *options)
             result = EXIT_FAILURE;
             break;
         }
+        char captured_at[40];
+        if (format_capture_time(&header->ts, captured_at, sizeof(captured_at)) != EXIT_SUCCESS) {
+            output_printf(stderr, "오류: 잘못된 캡처 시각입니다.\n");
+            reason = "캡처 오류";
+            result = EXIT_FAILURE;
+            break;
+        }
         /* Npcap 소유 버퍼를 복사하거나 원본 내용을 출력하지 않는다. */
         ++count;
-        output_printf(stdout, "패킷 #%" PRIu32 " 캡처 길이=%" PRIu32 " 원래 길이=%" PRIu32 "\n",
-               count, (uint32_t)header->caplen, (uint32_t)header->len);
+        output_printf(stdout, "패킷 #%" PRIu32 " 캡처 길이=%" PRIu32 " 원래 길이=%" PRIu32
+                      " 캡처 시각=%s\n",
+               count, (uint32_t)header->caplen, (uint32_t)header->len, captured_at);
         if (count >= options->packet_limit) {
             break;
         }

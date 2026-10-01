@@ -8,7 +8,7 @@
 /* 실제 드라이버 대신 실패를 주입한다. 장치를 열거나 트래픽을 만들지 않는다. */
 enum Scenario { NORMAL, INIT_ERROR, LIST_ERROR, OPEN_ERROR, LINK_ERROR,
     COMPILE_ERROR, FILTER_ERROR, NONBLOCK_ERROR, READ_ERROR, READ_END,
-    BAD_LENGTH, TRUNCATED, IDLE };
+    BAD_LENGTH, TRUNCATED, IDLE, BAD_MICROSECONDS, NEGATIVE_SECONDS };
 static enum Scenario scenario;
 static int opened, closed, freed_list, freed_code;
 static int fake_handle;
@@ -63,6 +63,8 @@ int pcap_next_ex(pcap_t *handle, struct pcap_pkthdr **header, const u_char **byt
     if (scenario == IDLE) { return 0; }
     packet.caplen = scenario == BAD_LENGTH ? 65 : 32;
     packet.len = scenario == TRUNCATED ? 64 : 32;
+    packet.ts.tv_sec = scenario == NEGATIVE_SECONDS ? -1 : 1704067200;
+    packet.ts.tv_usec = scenario == BAD_MICROSECONDS ? 1000000 : 7;
     *header = &packet;
     *bytes = data;
     return 1;
@@ -71,7 +73,7 @@ int main(void)
 {
     CaptureOptions options = {device_name, "ip", 2, 1};
     assert(capture_run(NULL) == 1);
-    for (scenario = NORMAL; scenario <= IDLE; ++scenario) {
+    for (scenario = NORMAL; scenario <= NEGATIVE_SECONDS; ++scenario) {
         opened = closed = freed_list = freed_code = 0;
         int expected = scenario == NORMAL || scenario == TRUNCATED || scenario == IDLE ? 0 : 1;
         assert(capture_run(&options) == expected);
@@ -83,6 +85,6 @@ int main(void)
     options.interface_name = "missing";
     opened = closed = 0;
     assert(capture_run(&options) == 1 && opened == 0 && closed == 0);
-    output_printf(stdout, "캡처 모의 테스트 통과: 13개 시나리오, 잘린 길이, 실패 경로 자원 해제\n");
+    output_printf(stdout, "캡처 모의 테스트 통과: 15개 시나리오, 잘린 길이, 잘못된 시각, 실패 경로 자원 해제\n");
     return 0;
 }

@@ -63,6 +63,7 @@ try {
     $sender = [Net.Sockets.UdpClient]::new()
     $sender.Connect([Net.IPAddress]::Loopback, $port)
     $arguments = "--interface `"$Interface`" --filter `"ip and udp and dst port $port`""
+    $captureStart = [DateTimeOffset]::UtcNow
     $traffic = Invoke-CaptureCase $exe "$arguments --count 5 --duration 5" {
         $payload = [Text.Encoding]::ASCII.GetBytes('NETSENTRY-LOCAL-TEST-0123456789A')
         if ($payload.Length -ne 32) { throw '실습 데이터 길이 오류' }
@@ -75,6 +76,18 @@ try {
         # DLT_NULL 4 + IPv4 20 + UDP 8 + 실습 데이터 32 = 64바이트
         if ($packet.Groups[1].Value -ne '64' -or $packet.Groups[2].Value -ne '64') { throw '패킷 길이 불일치' }
     }
+    $captureEnd = [DateTimeOffset]::UtcNow
+    $timestamps = [regex]::Matches($traffic.Output, '캡처 시각=(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z)')
+    if ($timestamps.Count -ne 5) { throw '패킷별 UTC 캡처 시각 누락' }
+    foreach ($timestamp in $timestamps) {
+        $capturedAt = [DateTimeOffset]::ParseExact($timestamp.Groups[1].Value,
+            "yyyy-MM-dd'T'HH:mm:ss.ffffff'Z'", [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal)
+        if ($capturedAt -lt $captureStart.AddSeconds(-1) -or $capturedAt -gt $captureEnd.AddSeconds(1)) {
+            throw '실제 캡처 시각이 실행 구간에서 벗어났습니다.'
+        }
+    }
+    Write-Output '통과: 패킷 5개의 UTC 캡처 시각과 소수점 6자리'
     if ($traffic.Output -match 'NETSENTRY-LOCAL-TEST') { throw '원본 데이터가 출력됨' }
     Write-Output '통과: 실습 패킷 5개, 각 64바이트, 원본 데이터 출력 없음'
     $idle = Invoke-CaptureCase $exe "$arguments --count 1 --duration 2" $null
